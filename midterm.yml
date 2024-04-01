@@ -1,0 +1,44 @@
+---
+- name: Configure firewall
+  hosts: all
+  become: true
+  tasks:
+    - name: Install ufw on Ubuntu
+      when: ansible_distribution == 'Ubuntu'
+      apt:
+        name: ufw
+        state: present
+
+    - name: Install firewalld on CentOS
+      when: ansible_distribution == 'CentOS'
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Enable firewall on Ubuntu
+      when: ansible_distribution == 'Ubuntu'
+      community.general.ufw:
+        state: enabled
+        policy: allow
+
+    - name: Start and enable firewalld on CentOS
+      when: ansible_distribution == 'CentOS'
+      systemd:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: Allow SSH through firewall
+      when: ansible_distribution == 'Ubuntu'
+      ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allow SSH through firewall
+      when: ansible_distribution == 'CentOS'
+      firewalld:
+        service: ssh
+        permanent: yes
+        state: enabled
+        immediate: yes
+
